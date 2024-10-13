@@ -1,1 +1,4 @@
-console.log("hello world");
+import "reflect-metadata";
+import { intializeServer } from "./server";
+
+intializeServer();

@@ -11,7 +11,9 @@
     "declarationMap": true,
     "sourceMap": true,
     "skipLibCheck": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": ["src", "test"]
 }
