@@ -3,8 +3,8 @@ import { Score } from "../entities/score.entity";
 
 export function transformMatchesToExpectedFormat(
   matches: Match[]
-): Record<string, any> {
-  const result: Record<string, any> = {};
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
 
   for (const match of matches) {
     const scoresObject: Record<string, Score> = {};

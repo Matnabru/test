@@ -52,11 +52,17 @@ export class WorkerService {
 
       this.cache.set(this.CACHE_KEY, activeMatches);
     } catch (error) {
-      logger.err(`Error updating state: ${error.message}`);
+      if (error instanceof Error) {
+        logger.err(`Error updating state:  ${error.message}`);
+      } else if (typeof error === "string") {
+        logger.err(`Error updating state:  ${error}`);
+      } else {
+        logger.err(`Unknown error updating state: ${String(error)}`);
+      }
     }
   }
 
-  private async processData(mappingsString, currentDataString) {
+  private async processData(mappingsString: string, currentDataString: string) {
     const mappingsMap = new Map<string, string>();
 
     mappingsString.split(";").forEach((pair) => {
@@ -117,7 +123,13 @@ export class WorkerService {
       const response = await axios.get<MappingsResponse>(config.api.mappings);
       return response.data;
     } catch (error) {
-      logger.err(`Error fetching mappings: ${error.message}`);
+      if (error instanceof Error) {
+        logger.err(`Error fetching mappings: ${error.message}`);
+      } else if (typeof error === "string") {
+        logger.err(`Error fetching mappings: ${error}`);
+      } else {
+        logger.err(`Unknown error fetching mappings: ${String(error)}`);
+      }
       throw error;
     }
   }
@@ -127,7 +139,13 @@ export class WorkerService {
       const response = await axios.get<CurrentDataResponse>(config.api.state);
       return response.data;
     } catch (error) {
-      logger.err(`Error fetching current data: ${error.message}`);
+      if (error instanceof Error) {
+        logger.err(`Error fetching current data: ${error.message}`);
+      } else if (typeof error === "string") {
+        logger.err(`Error fetching current data: ${error}`);
+      } else {
+        logger.err(`Unknown error fetching current data: ${String(error)}`);
+      }
       throw error;
     }
   }
