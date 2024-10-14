@@ -1,5 +1,11 @@
 # Real-time Crawlers - an interview task
 
+### Setup
+
+1. Move and adjust the `.env.sample` file -> `.env`
+2. Initialize a database (I used postgres).
+3. Run `npm install` -> `docker-compose up` -> `npm start`
+
 ### Requirements
 * docker `>=23.0.5`
 * docker-compose `>=2.24.6`
