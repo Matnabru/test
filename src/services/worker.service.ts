@@ -7,28 +7,52 @@ import { CurrentDataResponse } from "../types/current-data";
 import { MappingsResponse } from "../types/mappings";
 import { Score } from "../entities/score.entity";
 import { Match } from "../entities/match.entity";
+import NodeCache from "node-cache";
 
 @injectable()
 export class WorkerService {
   private matchRepository: Repository<Match>;
-  private scoreRepository: Repository<Score>;
+  private cache: NodeCache;
+  private CACHE_KEY = "ACTIVE_MATCHES";
 
   constructor(
     @inject("MatchRepository") matchRepository: Repository<Match>,
-    @inject("ScoreRepository") scoreRepository: Repository<Score>
+    @inject("Cache") cache: NodeCache
   ) {
     this.matchRepository = matchRepository;
-    this.scoreRepository = scoreRepository;
+    this.cache = cache;
   }
 
   async updateState() {
     try {
+      const cachedMatches =
+        this.cache.get<Match[]>(this.CACHE_KEY) ||
+        (await this.getActiveMatches());
+
       const { mappings } = await this.fetchMappings();
       const { odds } = await this.fetchCurrentData();
 
-      this.processData(mappings, odds);
+      const { matches: activeMatches, scores } = await this.processData(
+        mappings,
+        odds
+      );
+
+      const activeIds = activeMatches.map((match) => match.id);
+
+      const removedMatches = cachedMatches
+        .filter((cachedMatch) => !activeIds.includes(cachedMatch.id))
+        .map((match) => ({
+          ...match,
+          status: "REMOVED",
+        }));
+
+      const matchesToUpsert = [...activeMatches, ...removedMatches];
+
+      this.upsertMatchesWithScores({ matches: matchesToUpsert, scores });
+
+      this.cache.set(this.CACHE_KEY, activeMatches);
     } catch (error) {
-      logger.err("Error updating state:", error.message);
+      logger.err(`Error updating state: ${error.message}`);
     }
   }
 
@@ -85,15 +109,7 @@ export class WorkerService {
       }
     }
 
-    await this.matchRepository.manager.transaction(
-      async (transactionalEntityManager: EntityManager) => {
-        await transactionalEntityManager.upsert(Match, matches, ["id"]);
-        await transactionalEntityManager.upsert(Score, scores, [
-          "type",
-          "match",
-        ]);
-      }
-    );
+    return { matches, scores };
   }
 
   private async fetchMappings(): Promise<MappingsResponse> {
@@ -101,7 +117,7 @@ export class WorkerService {
       const response = await axios.get<MappingsResponse>(config.api.mappings);
       return response.data;
     } catch (error) {
-      logger.err("Error fetching mappings:", error.message);
+      logger.err(`Error fetching mappings: ${error.message}`);
       throw error;
     }
   }
@@ -111,7 +127,7 @@ export class WorkerService {
       const response = await axios.get<CurrentDataResponse>(config.api.state);
       return response.data;
     } catch (error) {
-      logger.err("Error fetching current data:", error.message);
+      logger.err(`Error fetching current data: ${error.message}`);
       throw error;
     }
   }
@@ -119,8 +135,27 @@ export class WorkerService {
   private async getActiveMatches(): Promise<Match[]> {
     const activeMatches = await this.matchRepository.find({
       where: { status: "LIVE" },
+      relations: ["scores"],
     });
 
     return activeMatches;
+  }
+
+  private async upsertMatchesWithScores({
+    matches,
+    scores,
+  }: {
+    matches: Match[];
+    scores: Score[];
+  }): Promise<void> {
+    await this.matchRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        await transactionalEntityManager.upsert(Match, matches, ["id"]);
+        await transactionalEntityManager.upsert(Score, scores, [
+          "type",
+          "match",
+        ]);
+      }
+    );
   }
 }

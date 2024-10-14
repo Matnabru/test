@@ -10,7 +10,9 @@ export class StateService {
     this.matchRepository = matchRepository;
   }
 
-  async getState() {
-    return "siema";
+  async getState(): Promise<Match[]> {
+    return await this.matchRepository.find({
+      relations: ["scores"],
+    });
   }
 }
