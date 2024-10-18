@@ -5,6 +5,7 @@ dotenv.config();
 export const config = {
   server: {
     port: process.env.PORT,
+    crawlerPort: process.env.CRAWLER_PORT
   },
   api: {
     state: `${process.env.API_URL}/state`,

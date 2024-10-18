@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "npm run build && node dist/index.js",
+    "start:crawler": "npm run build && node dist/crawler.js",
     "build": "tsc --project tsconfig.build.json",
     "test": "vitest run --coverage"
   },
@@ -14,6 +15,8 @@
     "@eslint/js": "^9.12.0",
     "@types/express": "^5.0.0",
     "@types/node-cron": "^3.0.11",
+    "@types/pg": "^8.11.10",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.9.0",
     "@typescript-eslint/parser": "^8.9.0",
     "@vitest/coverage-v8": "^1.3.1",
@@ -37,6 +40,7 @@
     "pg": "^8.13.0",
     "reflect-metadata": "^0.2.2",
     "tsyringe": "^4.8.0",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "uuid": "^10.0.0"
   }
 }

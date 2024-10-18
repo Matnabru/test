@@ -1,5 +1,5 @@
 import { inject, injectable } from "tsyringe";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { Match } from "../entities/match.entity";
 
 @injectable()
@@ -12,6 +12,9 @@ export class StateService {
 
   async getState(): Promise<Match[]> {
     return await this.matchRepository.find({
+      where: {
+        status: In(['LIVE', 'PRE']),
+      },
       relations: ["scores"],
     });
   }

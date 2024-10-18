@@ -15,7 +15,6 @@ export class StateController {
   getState = async (_req: Request, res: Response) => {
     try {
       const state = await this.stateService.getState();
-
       if (!state || state.length === 0) {
         res.status(404).send({ message: "No data found." });
       }
